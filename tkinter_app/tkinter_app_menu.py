@@ -12,7 +12,7 @@ from colorimetry.examples_correction import sample_sd_data
 # import examples_temperature_plots_A_n_D as illum_plot
 from colormath import color_conversions
 from colormath import color_objects
-from colormath.color_objects import XYZColor
+from colormath.color_objects import *
 
 
 class APP_Test(tk.Tk):
@@ -152,34 +152,34 @@ class Tristimulus(tk.Frame):
         self.spec_labelframe.grid(row = 2, column = 0, columnspan = 2, ipadx = 8, ipady = 3, pady = 20)
         ''' -------------------- Spectral Range --------------------'''
          
-        var1 = tk.StringVar()
+        self.var1 = tk.StringVar()
         ''' ---------- Spectral Start Label ---------- '''
         self.label_spec_range = tk.Label(self.spec_labelframe, text = f' {"Range" : <8} :', font = self.controller.label_font)
         self.label_spec_range.grid(row = 0, column = 0, padx = 4)
         ''' ---------- Spectral Start Entry ---------- '''
-        self.entry_spec_range = tk.Entry(self.spec_labelframe, width = 8, textvariable = var1, font = self.controller.label_font)
+        self.entry_spec_range = tk.Entry(self.spec_labelframe, width = 8, textvariable = self.var1, font = self.controller.label_font)
         self.entry_spec_range.grid(row = 0, column = 1)
         self.entry_spec_range['state'] = 'readonly'
           
         ''' ==================== Interval ==================== '''
           
-        var2 = tk.StringVar()
+        self.var2 = tk.StringVar()
         ''' ---------- Interval Label ---------- '''
         self.label_interval = tk.Label(self.spec_labelframe, text = f' {"Interval" : <8} :', font = self.controller.label_font)
         self.label_interval.grid(row = 1, column = 0, padx = 4)
         ''' ---------- Interval Entry ---------- '''
-        self.entry_interval = tk.Entry(self.spec_labelframe, width = 8, textvariable = var2, font = self.controller.label_font)
+        self.entry_interval = tk.Entry(self.spec_labelframe, width = 8, textvariable = self.var2, font = self.controller.label_font)
         self.entry_interval.grid(row = 1, column = 1)
         self.entry_interval['state'] = 'readonly'
 
         ''' ==================== Number Of Set ==================== '''
         
-        var3 = tk.StringVar()
+        self.var3 = tk.StringVar()
         ''' ---------- Number Label ---------- '''
         self.label_number =  tk.Label(self.spec_labelframe, text = f' {"Number" : <8} :', font = self.controller.label_font)
         self.label_number.grid(row = 2, column = 0, padx = 4)
         ''' ---------- Number Entry ---------- '''
-        self.entry_number = tk.Entry(self.spec_labelframe, width = 8, textvariable = var3, font = self.controller.label_font)
+        self.entry_number = tk.Entry(self.spec_labelframe, width = 8, textvariable = self.var3, font = self.controller.label_font)
         self.entry_number.grid(row = 2, column = 1)
         self.entry_number['state'] = 'readonly'
         
@@ -196,7 +196,7 @@ class Tristimulus(tk.Frame):
         self.var_ill = tk.StringVar()
         self.illuminant_cb = Combobox(self.param_labelframe, textvariable = self.var_ill, 
                                       font = controller.label_font, width = 8, state = 'normal')
-        self.illuminant_cb["values"] = ("D50", "D55", "D65", "D75")
+        self.illuminant_cb["values"] = ("D50", "D65")
         self.illuminant_cb.current(0)
         self.illuminant_cb['state'] = 'readonly'
         self.illuminant_cb.grid(row = 0, column = 1) 
@@ -218,7 +218,7 @@ class Tristimulus(tk.Frame):
         
         ''' ---------- Calulate Button -------- '''
         self.btn_cal = tk.Button(self.labelframe, text = "Calculate", font = controller.button_font,
-                                 command = lambda:self.__printCalulate(), 
+                                 command = lambda:self.__loadData(), 
                                  width = 8, height = 2)
         self.btn_cal.grid(row = 4, column = 0, columnspan = 2, padx = 50, pady = 2)
         ''' ---------- Back Button ---------- '''
@@ -231,7 +231,7 @@ class Tristimulus(tk.Frame):
         self.label.grid(row = 5, column = 0, columnspan = 4, pady = 1)
         
  
-    def __printCalulate(self):
+    def __loadData(self):
         '''
         for index in range(len(self.specs)):
             self.specs[index] = int(spectral_var) + int(interval_var) * index
@@ -239,96 +239,179 @@ class Tristimulus(tk.Frame):
         print(sample_sd_data)
         self.__createWindow(sample_sd_data)
         '''
-        source = [0,0,0,0,0.0576,0.0627,0.0661,0.0668,0.0664,
-              0.0652,0.0648,0.0646,0.0658,0.0687,
-              0.0719,0.0735,0.0744,0.0762,0.0795,
-              0.0823,0.0841,0.0874,0.0946,0.1086,
-              0.1259,0.1415,0.1508,0.1549,0.1573,
-              0.1597,0.1623,0.1641,0.1652,0.1649,
-              0.1634,0.1619,0.1622,0.1638,0.1651,0.1665]
-        spectral = color_objects.SpectralColor(*source, observer='2', illuminant='d50')
-        xyz = color_conversions.convert_color(spectral, XYZColor)
-        print(xyz)
+        source = [int(x) for x in range(340, 840) if x % 10 == 0]
+        sample_sd_data_list = []
+        for i in range(int(self.var3.get())):
+            sample_sd_data_list.append([])
+        j = 0
+        for d in self.data:
+            if  int(d[0]) % 10 == 0:
+                for s in range(j, len(source)):
+                    if source[s] == int(d[0]):
+                        for a in range(len(sample_sd_data_list)):
+                            sample_sd_data_list[a].append(float(d[1].split(',')[a]))
+                        j = s + 1
+                        break
+                    else:
+                        for a in range(len(sample_sd_data_list)):
+                            sample_sd_data_list[a].append(0)
+        print(len(source), len(sample_sd_data_list[0]))
+        for i in range(len(source) - len(sample_sd_data_list[0])):
+            for a in range(len(sample_sd_data_list)):
+                sample_sd_data_list[a].append(0)
+        print(len(source), len(sample_sd_data_list[0]))
+        print(sample_sd_data_list)
+        
         if self.entry_spec_range.get() and self.entry_interval.get() and self.entry_number.get() and self.var_ill.get() and self.degree_select.get():
-            print('Complete')
+            print(self.degree_select.get(),self.var_ill.get().lower())
         else:
             messagebox.showwarning(title = 'Value Error', message = 'Confirm whether you choose a file')
+        self.__createWindow(sample_sd_data_list)
         
         
     def __askOpenFileName(self):
-        self.filename = askopenfilename()
-#         label_filename = tk.Label(self.labelframe, borderwidth = 2, relief = 'sunken',
-#                                   width = 15, text = self.filename.split('/')[-1])
-        self.label_filename["text"] = self.filename.split('/')[-1]
-        file_type = self.filename.split('.')[-1]
-        self.data = []
-        if self.filename != '':
-            if file_type == 'txt':
-                print('txt')
-                with open(self.filename, 'r') as f:
-                    for line in f.readlines():
-                        line = line.strip('\n')
-                        d = line.split(',', 1)
-#                         print(d)
-                        self.data.append(d)
-            elif file_type == 'csv':
-                print('csv')
-                with open(self.filename, newline='') as csvfile:
-                    rows = csv.reader(csvfile)
-                    for row in rows:
-                        d = [row[0]]
-                        d.append(','.join(str(row[i]) for i in range(1, len(row))))
-#                         print(d)
-                        self.data.append(d)
+        try:
+            self.filename = askopenfilename()
+            
+            self.label_filename["text"] = self.filename.split('/')[-1]
+            file_type = self.filename.split('.')[-1]
+            self.data = []
+            if self.filename != '':
+                if file_type == 'txt':
+                    print('txt')
+                    with open(self.filename, 'r') as f:
+                        for line in f.readlines():
+                            line = line.strip('\n')
+                            d = line.split(',', 1)
+    #                         print(d)
+                            self.data.append(d)
+                elif file_type == 'csv':
+                    print('csv')
+                    with open(self.filename, newline='') as csvfile:
+                        rows = csv.reader(csvfile)
+                        for row in rows:
+                            d = [row[0]]
+                            d.append(','.join(str(row[i]) for i in range(1, len(row))))
+    #                         print(d)
+                            self.data.append(d)
+            
+            self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
+            self.entry_spec_range["state"] = "normal"
+            self.entry_spec_range.delete(0, END)
+            self.entry_spec_range.insert(0, self.spec_range)
+            self.entry_spec_range["state"] = "readonly"
+            
+            self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
+            self.entry_interval["state"] = "normal"
+            self.entry_interval.delete(0, END)
+            self.entry_interval.insert(0, self.spec_interval)
+            self.entry_interval["state"] = "readonly"
+            
+            self.spec_number = len(self.data[0][1].split(','))
+            self.entry_number["state"] = "normal"
+            self.entry_number.delete(0, END)
+            self.entry_number.insert(0, self.spec_number)
+            self.entry_number["state"] = "readonly"
+        except:
+            pass
         
-        self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
-        self.entry_spec_range["state"] = "normal"
-        self.entry_spec_range.delete(0, END)
-        self.entry_spec_range.insert(0, self.spec_range)
-        self.entry_spec_range["state"] = "readonly"
+    def __createWindow(self, sample_sd_data_list):
+        self.page_index = 0
+        xyz = self.__calculate(sample_sd_data_list[self.page_index])
         
-        self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
-        self.entry_interval["state"] = "normal"
-        self.entry_interval.delete(0, END)
-        self.entry_interval.insert(0, self.spec_interval)
-        self.entry_interval["state"] = "readonly"
-        
-        self.spec_number = len(self.data[0][1].split(','))
-        self.entry_number["state"] = "normal"
-        self.entry_number.delete(0, END)
-        self.entry_number.insert(0, self.spec_number)
-        self.entry_number["state"] = "readonly"
-        
-        
-    def __createWindow(self, sample_sd_data):
         self.xyz_window = tk.Toplevel(self)
         self.xyz_window.title("CIE XYZ")
-        self.xyz_window.geometry("200x150")
+        self.xyz_window.geometry("250x150")
         self.xyz_window.resizable(False, False)
         
         ''' ==================== Calculate Result ==================== '''
-        top_space = Label(self.xyz_window, text = '')
-        top_space.grid(row = 0, column = 0, columnspan = 3)
         
-        x_label = Label(self.xyz_window, text = 'X :', anchor = E)
-        x_label.grid(row = 1, column = 0, ipadx = 20, pady = 2)
-        x_entry = Entry(self.xyz_window, width = 8)
-        x_entry.grid(row = 1, column = 1, pady = 2, columnspan = 2)
-        x_entry.insert(0, sample_sd_data)
+        self.top_content = Label(self.xyz_window, text = str(self.page_index + 1) + '/' + self.var3.get())
+        self.top_content.grid(row = 0, column = 1)
         
-        y_label = Label(self.xyz_window, text = 'Y :', anchor = E)
-        y_label.grid(row = 2, column = 0, ipadx = 20, pady = 2)
-        y_entry = Entry(self.xyz_window, width = 8)
-        y_entry.grid(row = 2, column = 1, pady = 2, columnspan = 2)
+        self.x_label = Label(self.xyz_window, text = 'X :', anchor = E)
+        self.x_label.grid(row = 1, column = 0, ipadx = 35, pady = 2)
+        self.x_entry = Entry(self.xyz_window, width = 8, font = self.controller.label_font)
+        self.x_entry.grid(row = 1, column = 1, pady = 2, columnspan = 2, sticky = W)
+        self.x_entry["state"] = "normal"
+        self.x_entry.insert(0, xyz[0].strip("x:"))
+        self.x_entry["state"] = "readonly"
         
-        z_label = Label(self.xyz_window, text = 'Z :', anchor = E)
-        z_label.grid(row = 3, column = 0, ipadx = 20, pady = 2)
-        z_entry = Entry(self.xyz_window, width = 8)
-        z_entry.grid(row = 3, column = 1, pady = 2, columnspan = 2)
+        self.y_label = Label(self.xyz_window, text = 'Y :', anchor = E)
+        self.y_label.grid(row = 2, column = 0, ipadx = 35, pady = 2)
+        self.y_entry = Entry(self.xyz_window, width = 8, font = self.controller.label_font)
+        self.y_entry.grid(row = 2, column = 1, pady = 2, columnspan = 2, sticky = W)
+        self.y_entry["state"] = "normal"
+        self.y_entry.insert(0, xyz[1].strip("y:"))
+        self.y_entry["state"] = "readonly"
         
-        exit_btn = Button(self.xyz_window, text = 'exit', width = 3, command = self.__exit)
-        exit_btn.grid(row = 4, column = 1, columnspan = 2)
+        self.z_label = Label(self.xyz_window, text = 'Z :', anchor = E)
+        self.z_label.grid(row = 3, column = 0, ipadx = 35, pady = 2)
+        self.z_entry = Entry(self.xyz_window, width = 8, font = self.controller.label_font)
+        self.z_entry.grid(row = 3, column = 1, pady = 2, columnspan = 2, sticky = W)
+        self.z_entry["state"] = "normal"
+        self.z_entry.insert(0, xyz[2].strip("z:"))
+        self.z_entry["state"] = "readonly"
+        
+        self.prev_btn = Button(self.xyz_window, text = 'prev', width = 3, command = lambda: self.__prevORnext('p', sample_sd_data_list))
+        self.prev_btn.grid(row = 4, column = 0, padx = 4)
+        self.exit_btn = Button(self.xyz_window, text = 'exit', width = 3, command = self.__exit)
+        self.exit_btn.grid(row = 4, column = 1, padx = 4)
+        self.next_btn = Button(self.xyz_window, text = 'next', width = 3, command = lambda: self.__prevORnext('n', sample_sd_data_list))
+        self.next_btn.grid(row = 4, column = 2, padx = 3)
+        self.prev_btn.grid_forget()
+        if str(self.page_index + 1) == self.var3.get():
+            self.next_btn.grid_forget() 
+        
          
+    def __calculate(self, sample_sd_data):
+        spectral = color_objects.SpectralColor(*sample_sd_data, 
+                                               observer=self.degree_select.get(), 
+                                               illuminant=self.var_ill.get().lower())
+        xyz = color_conversions.convert_color(spectral, XYZColor)
+        myxyz = str(xyz).strip(")").replace(' ','').split("xyz_")[1:]
+#         print(xyz)
+        rgb = color_conversions.convert_color(xyz, sRGBColor)
+        print(rgb)
+        return myxyz
+    
+    def __prevORnext(self, state, sample_sd_data_list):
+        
+        if state == 'p':
+            self.page_index -= 1
+        elif state == 'n':
+            self.page_index += 1
+            
+        self.top_content['text'] = str(self.page_index + 1) + '/' + self.var3.get()
+        
+        if self.page_index == 0:
+            self.prev_btn.grid_forget()
+        else :
+            self.prev_btn.grid(row = 4, column = 0, padx = 4)
+            
+        if str(self.page_index + 1) == self.var3.get():
+            self.next_btn.grid_forget()
+        else :
+            self.next_btn.grid(row = 4, column = 2, padx = 4)
+            
+        sample_sd_data = sample_sd_data_list[self.page_index]
+        xyz = self.__calculate(sample_sd_data)
+        self.x_entry["state"] = "normal"
+        self.x_entry.delete(0, END)
+        self.x_entry.insert(0, xyz[0].strip("x:"))
+        self.x_entry["state"] = "readonly"
+        
+        self.y_entry["state"] = "normal"
+        self.y_entry.delete(0, END)
+        self.y_entry.insert(0, xyz[1].strip("y:"))
+        self.y_entry["state"] = "readonly"
+        
+        self.z_entry["state"] = "normal"
+        self.z_entry.delete(0, END)
+        self.z_entry.insert(0, xyz[2].strip("z:"))
+        self.z_entry["state"] = "readonly"
+        
+    
     def __exit(self):
         self.xyz_window.destroy()
 
