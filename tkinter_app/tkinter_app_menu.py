@@ -458,6 +458,15 @@ class Tristimulus(tk.Frame):
     def __exit(self):
         self.xyz_window.destroy()
 
+class ColorSpaceCalculator(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+        
+        self.btn_back = tk.Button(self, text = "Back", font = controller.button_font,
+                                  command=lambda: controller.show_frame("StartPage"),
+                                  width = 6, height = 2)
+        self.btn_back.grid(row = 4, column = 2, columnspan = 2, padx = 50, pady = 2)
         
 if __name__ == "__main__":
     app = APP_Test()
