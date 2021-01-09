@@ -13,6 +13,8 @@ from colorimetry.examples_correction import sample_sd_data
 from colormath import color_conversions
 from colormath import color_objects
 from colormath.color_objects import *
+from fileinput import input
+
 
 
 class APP_Test(tk.Tk):
@@ -41,7 +43,7 @@ class APP_Test(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, ColourTemperature, Tristimulus):
+        for F in (StartPage, ColourTemperature, Tristimulus, ColorSpaceCalculator):
             page_name = F.__name__
             frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
@@ -76,6 +78,11 @@ class StartPage(tk.Frame):
                                          font = self.controller.menu_btn_font, height = 2,
                                          command=lambda: controller.show_frame("Tristimulus"))
         self.btn_tristimulus.pack(pady = 5)
+        ''' ---------- Go To Color Space Calculator ---------- '''
+        self.btn_cs_cal = tk.Button(self, text = "Color Space Calculator", width = 25,
+                                         font = self.controller.menu_btn_font, height = 2,
+                                         command=lambda: controller.show_frame("ColorSpaceCalculator"))
+        self.btn_cs_cal.pack(pady = 5)
         
 class ColourTemperature(tk.Frame):
     def __init__(self, parent, controller):
@@ -193,8 +200,7 @@ class Tristimulus(tk.Frame):
         self.illuminant_label.grid(row = 0, column = 0)
         
         ''' ---------- Illuminant Combo Box ---------- '''
-        self.var_ill = tk.StringVar()
-        self.illuminant_cb = Combobox(self.param_labelframe, textvariable = self.var_ill, 
+        self.illuminant_cb = Combobox(self.param_labelframe, 
                                       font = controller.label_font, width = 8, state = 'normal')
         self.illuminant_cb["values"] = ("D50", "D65")
         self.illuminant_cb.current(0)
@@ -240,80 +246,84 @@ class Tristimulus(tk.Frame):
         self.__createWindow(sample_sd_data)
         '''
         source = [int(x) for x in range(340, 840) if x % 10 == 0]
-        sample_sd_data_list = []
+        self.sample_sd_data_list = []
         for i in range(int(self.var3.get())):
-            sample_sd_data_list.append([])
+            self.sample_sd_data_list.append([])
         j = 0
         for d in self.data:
             if  int(d[0]) % 10 == 0:
                 for s in range(j, len(source)):
                     if source[s] == int(d[0]):
-                        for a in range(len(sample_sd_data_list)):
-                            sample_sd_data_list[a].append(float(d[1].split(',')[a]))
+                        for a in range(len(self.sample_sd_data_list)):
+                            self.sample_sd_data_list[a].append(float(d[1].split(',')[a]))
                         j = s + 1
                         break
                     else:
-                        for a in range(len(sample_sd_data_list)):
-                            sample_sd_data_list[a].append(0)
-        print(len(source), len(sample_sd_data_list[0]))
-        for i in range(len(source) - len(sample_sd_data_list[0])):
-            for a in range(len(sample_sd_data_list)):
-                sample_sd_data_list[a].append(0)
-        print(len(source), len(sample_sd_data_list[0]))
-        print(sample_sd_data_list)
+                        for a in range(len(self.sample_sd_data_list)):
+                            self.sample_sd_data_list[a].append(0)
+        print(len(source), len(self.sample_sd_data_list[0]))
+        for i in range(len(source) - len(self.sample_sd_data_list[0])):
+            for a in range(len(self.sample_sd_data_list)):
+                self.sample_sd_data_list[a].append(0)
+        print(len(source), len(self.sample_sd_data_list[0]))
+        print(self.sample_sd_data_list)
         
-        if self.entry_spec_range.get() and self.entry_interval.get() and self.entry_number.get() and self.var_ill.get() and self.degree_select.get():
-            print(self.degree_select.get(),self.var_ill.get().lower())
+        if self.entry_spec_range.get() and self.entry_interval.get() and self.entry_number.get() and self.illuminant_cb.get() and self.degree_select.get():
+            print(self.degree_select.get(), self.illuminant_cb.get().lower())
         else:
             messagebox.showwarning(title = 'Value Error', message = 'Confirm whether you choose a file')
-        self.__createWindow(sample_sd_data_list)
+        self.__createWindow(self.sample_sd_data_list)
         
         
     def __askOpenFileName(self):
-        try:
-            self.filename = askopenfilename()
-            
-            self.label_filename["text"] = self.filename.split('/')[-1]
-            file_type = self.filename.split('.')[-1]
-            self.data = []
-            if self.filename != '':
-                if file_type == 'txt':
-                    print('txt')
-                    with open(self.filename, 'r') as f:
-                        for line in f.readlines():
-                            line = line.strip('\n')
-                            d = line.split(',', 1)
-    #                         print(d)
-                            self.data.append(d)
-                elif file_type == 'csv':
-                    print('csv')
-                    with open(self.filename, newline='') as csvfile:
-                        rows = csv.reader(csvfile)
-                        for row in rows:
-                            d = [row[0]]
-                            d.append(','.join(str(row[i]) for i in range(1, len(row))))
-    #                         print(d)
-                            self.data.append(d)
-            
-            self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
-            self.entry_spec_range["state"] = "normal"
-            self.entry_spec_range.delete(0, END)
-            self.entry_spec_range.insert(0, self.spec_range)
-            self.entry_spec_range["state"] = "readonly"
-            
-            self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
-            self.entry_interval["state"] = "normal"
-            self.entry_interval.delete(0, END)
-            self.entry_interval.insert(0, self.spec_interval)
-            self.entry_interval["state"] = "readonly"
-            
-            self.spec_number = len(self.data[0][1].split(','))
-            self.entry_number["state"] = "normal"
-            self.entry_number.delete(0, END)
-            self.entry_number.insert(0, self.spec_number)
-            self.entry_number["state"] = "readonly"
-        except:
-            pass
+        self.filename = askopenfilename()
+        
+        self.label_filename["text"] = self.filename.split('/')[-1]
+        file_type = self.filename.split('.')[-1]
+        self.data = []
+        if self.filename != '':
+            if file_type == 'txt':
+                print('txt')
+                try:
+                    with open(self.filename, 'r', encoding = 'utf-16', errors = 'ignore') as f:
+                        rows = f.readlines()
+                except UnicodeError:
+                    with open(self.filename, 'r', encoding = 'utf-8', errors = 'ignore') as f:
+                        rows = f.readlines()
+                for row in rows:
+                    row_split = row.split('\t')
+                    d = [row_split[0]]
+                    d.append(','.join(str(row_split[i]) for i in range(1, len(row_split))))
+                    self.data.append(d)
+                    print(d)
+            elif file_type == 'csv':
+                print('csv')
+                with open(self.filename, newline='') as csvfile:
+                    rows = csv.reader(csvfile)
+                    for row in rows:
+                        d = [row[0]]
+                        d.append(','.join(str(row[i]) for i in range(1, len(row))))
+                        #print(d)
+                        self.data.append(d)
+        
+        self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
+        self.entry_spec_range["state"] = "normal"
+        self.entry_spec_range.delete(0, END)
+        self.entry_spec_range.insert(0, self.spec_range)
+        self.entry_spec_range["state"] = "readonly"
+        
+        self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
+        self.entry_interval["state"] = "normal"
+        self.entry_interval.delete(0, END)
+        self.entry_interval.insert(0, self.spec_interval)
+        self.entry_interval["state"] = "readonly"
+        
+        self.spec_number = len(self.data[0][1].split(','))
+        self.entry_number["state"] = "normal"
+        self.entry_number.delete(0, END)
+        self.entry_number.insert(0, self.spec_number)
+        self.entry_number["state"] = "readonly"
+
         
     def __createWindow(self, sample_sd_data_list):
         self.page_index = 0
@@ -325,9 +335,14 @@ class Tristimulus(tk.Frame):
         self.xyz_window.resizable(False, False)
         
         ''' ==================== Calculate Result ==================== '''
-        
-        self.top_content = Label(self.xyz_window, text = str(self.page_index + 1) + '/' + self.var3.get())
-        self.top_content.grid(row = 0, column = 1)
+        self.xyz_combobox = Combobox(self.xyz_window, width = 3, state = 'readonly', 
+                                     values = [str(i) for i in range(1, int(self.var3.get()) + 1)]) 
+        self.xyz_combobox.current(0)
+        self.xyz_combobox.bind('<<ComboboxSelected>>', self.__changeByIndex)
+        self.xyz_combobox.grid(row = 0, column = 1, sticky = W)
+            
+        self.top_content = Label(self.xyz_window, text = '/ ' + self.var3.get())
+        self.top_content.grid(row = 0, column = 1, sticky = E)
         
         self.x_label = Label(self.xyz_window, text = 'X :', anchor = E)
         self.x_label.grid(row = 1, column = 0, ipadx = 35, pady = 2)
@@ -353,21 +368,20 @@ class Tristimulus(tk.Frame):
         self.z_entry.insert(0, xyz[2].strip("z:"))
         self.z_entry["state"] = "readonly"
         
-        self.prev_btn = Button(self.xyz_window, text = 'prev', width = 3, command = lambda: self.__prevORnext('p', sample_sd_data_list))
+        self.prev_btn = Button(self.xyz_window, text = 'prev', width = 3, command = lambda: self.__changeByBtn('p'))
         self.prev_btn.grid(row = 4, column = 0, padx = 4)
         self.exit_btn = Button(self.xyz_window, text = 'exit', width = 3, command = self.__exit)
         self.exit_btn.grid(row = 4, column = 1, padx = 4)
-        self.next_btn = Button(self.xyz_window, text = 'next', width = 3, command = lambda: self.__prevORnext('n', sample_sd_data_list))
+        self.next_btn = Button(self.xyz_window, text = 'next', width = 3, command = lambda: self.__changeByBtn('n'))
         self.next_btn.grid(row = 4, column = 2, padx = 3)
         self.prev_btn.grid_forget()
         if str(self.page_index + 1) == self.var3.get():
             self.next_btn.grid_forget() 
-        
          
     def __calculate(self, sample_sd_data):
         spectral = color_objects.SpectralColor(*sample_sd_data, 
                                                observer=self.degree_select.get(), 
-                                               illuminant=self.var_ill.get().lower())
+                                               illuminant=self.illuminant_cb.get().lower())
         xyz = color_conversions.convert_color(spectral, XYZColor)
         myxyz = str(xyz).strip(")").replace(' ','').split("xyz_")[1:]
 #         print(xyz)
@@ -375,14 +389,8 @@ class Tristimulus(tk.Frame):
         print(rgb)
         return myxyz
     
-    def __prevORnext(self, state, sample_sd_data_list):
-        
-        if state == 'p':
-            self.page_index -= 1
-        elif state == 'n':
-            self.page_index += 1
-            
-        self.top_content['text'] = str(self.page_index + 1) + '/' + self.var3.get()
+    def __changeByIndex(self, event):
+        self.page_index = int(self.xyz_combobox.get()) - 1
         
         if self.page_index == 0:
             self.prev_btn.grid_forget()
@@ -394,7 +402,7 @@ class Tristimulus(tk.Frame):
         else :
             self.next_btn.grid(row = 4, column = 2, padx = 4)
             
-        sample_sd_data = sample_sd_data_list[self.page_index]
+        sample_sd_data = self.sample_sd_data_list[self.page_index]
         xyz = self.__calculate(sample_sd_data)
         self.x_entry["state"] = "normal"
         self.x_entry.delete(0, END)
@@ -411,10 +419,44 @@ class Tristimulus(tk.Frame):
         self.z_entry.insert(0, xyz[2].strip("z:"))
         self.z_entry["state"] = "readonly"
         
+    def __changeByBtn(self, state):
+        
+        if state == 'p':
+            self.page_index -= 1
+        elif state == 'n':
+            self.page_index += 1
+
+        self.xyz_combobox.current(self.page_index)
+        
+        if self.page_index == 0:
+            self.prev_btn.grid_forget()
+        else :
+            self.prev_btn.grid(row = 4, column = 0, padx = 4)
+            
+        if str(self.page_index + 1) == self.var3.get():
+            self.next_btn.grid_forget()
+        else :
+            self.next_btn.grid(row = 4, column = 2, padx = 4)
+            
+        sample_sd_data = self.sample_sd_data_list[self.page_index]
+        xyz = self.__calculate(sample_sd_data)
+        self.x_entry["state"] = "normal"
+        self.x_entry.delete(0, END)
+        self.x_entry.insert(0, xyz[0].strip("x:"))
+        self.x_entry["state"] = "readonly"
+        
+        self.y_entry["state"] = "normal"
+        self.y_entry.delete(0, END)
+        self.y_entry.insert(0, xyz[1].strip("y:"))
+        self.y_entry["state"] = "readonly"
+        
+        self.z_entry["state"] = "normal"
+        self.z_entry.delete(0, END)
+        self.z_entry.insert(0, xyz[2].strip("z:"))
+        self.z_entry["state"] = "readonly"
     
     def __exit(self):
         self.xyz_window.destroy()
-
 
         
 if __name__ == "__main__":
