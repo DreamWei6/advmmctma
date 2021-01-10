@@ -1,3 +1,8 @@
+'''
+Created on 2020
+
+@author: kankuni
+'''
 import tkinter as tk
 import tkinter.messagebox
 from tkinter import *
@@ -13,7 +18,6 @@ from colorimetry.examples_correction import sample_sd_data
 from colormath import color_conversions
 from colormath import color_objects
 from colormath.color_objects import *
-from fileinput import input
 
 
 
@@ -28,6 +32,7 @@ class APP_Test(tk.Tk):
         self.button_font = tkfont.Font(family = 'Courier', size = 16)
         self.label_font = tkfont.Font(family = 'Courier', size = 12)
         self.label_big_font = tkfont.Font(family = 'Courier', size = 16)
+        self.label_super_big_font = tkfont.Font(family = 'Courier', size = 24)
         
         self.title("ADVMMCTMA by Jimbo(M108660006)")
         self.geometry("480x360")
@@ -463,10 +468,164 @@ class ColorSpaceCalculator(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         
-        self.btn_back = tk.Button(self, text = "Back", font = controller.button_font,
-                                  command=lambda: controller.show_frame("StartPage"),
-                                  width = 6, height = 2)
-        self.btn_back.grid(row = 4, column = 2, columnspan = 2, padx = 50, pady = 2)
+        ''' ---------- Label Frame ---------- '''
+        self.labelframe = tk.LabelFrame(self, labelanchor="nw",
+                                        font = controller.labelframe_font,
+                                        text='Color Space Calculator')
+        self.labelframe.pack(pady = 10, padx = 5)
+        
+        ''' ==================== Setting ==================== '''
+        self.setting_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
+                                        font = controller.labelframe_font,
+                                        text='Color Space Calculator')
+        self.setting_labelframe.grid(row = 0, column = 0, pady = 2, padx = 10)
+        ''' ---------- Input System ---------- '''
+        self.input_system_lb = Label(self.setting_labelframe, text = f'{"Input system" : <30}',
+                                    font = controller.label_font)
+        self.input_system_lb.grid(row = 0, column = 0, pady = 2)
+        
+        self.input_system_cb = Combobox(self.setting_labelframe, width = 8, state = 'readonly', 
+                                     values = ["XYZ", "HEX", "CMYK", "RGB", "CIE LAB"],
+                                     font = controller.label_font) 
+        self.input_system_cb.current(0)
+        self.input_system_cb.bind('<<ComboboxSelected>>', self.__changeSetting)
+        self.input_system_cb.grid(row = 0, column = 1)
+        ''' ---------- Illuminant for input values ---------- '''
+        self.ill_in_lb = Label(self.setting_labelframe, text = f'{"Illuminant for input values" : <30}',
+                                    font = controller.label_font)
+        self.ill_in_lb.grid(row = 1, column = 0, pady = 2)
+        self.ill_in_cb = Combobox(self.setting_labelframe, values = ["D50", "D65"],
+                                      font = controller.label_font, width = 8, state = 'readonly')
+        self.ill_in_cb.current(0)
+        self.ill_in_cb.bind('<<ComboboxSelected>>', self.__changeSetting)
+        self.ill_in_cb.grid(row = 1, column = 1) 
+        ''' ---------- Observer for input values ---------- '''
+        self.ill_in_lb = Label(self.setting_labelframe, text = f'{"Observer for input values" : <30}',
+                                    font = controller.label_font)
+        self.ill_in_lb.grid(row = 2, column = 0, pady = 2)
+        self.input_degree = tk.StringVar()
+        self.ob_in_2 = tk.Radiobutton(self.setting_labelframe, text = f'{"2-degree":<10}', font = self.controller.label_font,   
+                                       variable = self.input_degree, value = '2', command = lambda : self.__changeSetting('<<RadiobuttonSelected>>'))
+        self.ob_in_2.grid(row = 2, column = 1)
+        self.ob_in_10 = tk.Radiobutton(self.setting_labelframe, text = f'{"10-degree":<10}', font = self.controller.label_font, 
+                                       variable = self.input_degree, value = '10', command = lambda : self.__changeSetting('<<RadiobuttonSelected>>'))
+        self.ob_in_10.grid(row = 3, column = 1)
+        self.input_degree.set('2')
+        ''' ---------- Illuminant for output values ---------- '''
+        self.ill_out_lb = Label(self.setting_labelframe, text = f'{"Illuminant for output values" : <30}',
+                                    font = controller.label_font)
+        self.ill_out_lb.grid(row = 4, column = 0, pady = 2)
+        self.ill_out_cb = Combobox(self.setting_labelframe, values = ["D50", "D65"],
+                                      font = controller.label_font, width = 8, state = 'readonly')
+        self.ill_out_cb.current(0)
+        self.ill_out_cb.bind('<<ComboboxSelected>>', self.__changeSetting)
+        self.ill_out_cb.grid(row = 4, column = 1) 
+        ''' ---------- Observer for output values ---------- '''
+        self.ill_out_lb = Label(self.setting_labelframe, text = f'{"Observer for output values" : <30}',
+                                    font = controller.label_font)
+        self.ill_out_lb.grid(row = 5, column = 0, pady = 2)
+        self.output_degree = tk.StringVar()
+        self.ob_out_2 = tk.Radiobutton(self.setting_labelframe, text = f'{"2-degree":<10}', font = self.controller.label_font,   
+                                       variable = self.output_degree, value = '2', command = lambda : self.__changeSetting('<<RadiobuttonSelected>>'))
+        self.ob_out_2.grid(row = 5, column = 1)
+        self.ob_out_10 = tk.Radiobutton(self.setting_labelframe, text = f'{"10-degree":<10}', font = self.controller.label_font, 
+                                       variable = self.output_degree, value = '10', command = lambda : self.__changeSetting('<<RadiobuttonSelected>>'))
+        self.ob_out_10.grid(row = 6, column = 1)
+        self.output_degree.set('2')
+        ''' ---------- XYZ range ---------- '''
+        self.xyz_range_check_lb = Label(self.setting_labelframe, text = f'{"XYZ range in 0 to 1" : <30}',
+                                        font = controller.label_font)
+        self.xyz_range_check_lb.grid(row = 7, column = 0, pady = 2)
+        
+        self.range_check_bool = tk.BooleanVar()
+        self.range_check = tk.Checkbutton(self.setting_labelframe, var = self.range_check_bool, 
+                                          command = lambda : self.__changeSetting('<<CheckbuttonSelected>>'))
+        self.range_check.grid(row = 7, column = 1)
+        
+        ''' ==================== Input ==================== '''
+        self.input_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
+                                              font = controller.labelframe_font,
+                                              text='Output')
+        self.input_labelframe.grid(row = 0, column = 1, pady = 2, padx = 10)
+        ''' ---------- Input 1 ---------- '''
+        self.input1_lb = Label(self.input_labelframe, text = "X", font = controller.label_super_big_font)
+        self.input1_lb.grid(row = 0, column = 0, padx = 5)
+        self.input1_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
+        self.input1_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+        ''' ---------- Input 2 ---------- '''
+        self.input2_lb = Label(self.input_labelframe, text = "Y", font = controller.label_super_big_font)
+        self.input2_lb.grid(row = 1, column = 0, padx = 5)
+        self.input2_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
+        self.input2_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+        ''' ---------- Input 3 ---------- '''
+        self.input3_lb = Label(self.input_labelframe, text = "Z", font = controller.label_super_big_font)
+        self.input3_lb.grid(row = 2, column = 0, padx = 5)
+        self.input3_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
+        self.input3_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+        ''' ---------- Input 4 ---------- '''
+        self.input4_lb = Label(self.input_labelframe, text = " ", font = controller.label_super_big_font)
+        self.input4_lb.grid(row = 3, column = 0, padx = 5)
+        self.input4_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
+        self.input4_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
+        
+        ''' ==================== Output ==================== '''
+        self.output_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
+                                              font = controller.labelframe_font,
+                                              text='Input')
+        self.output_labelframe.grid(row = 1, column = 0, pady = 5, padx = 10, columnspan = 2)
+        ''' ---------- XYZ ---------- '''
+        self.xyz_lb = Label(self.output_labelframe, text = "XYZ", font = controller.label_big_font)
+        self.xyz_lb.grid(row = 0, column = 0, padx = 4)
+        
+        self.xyz_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.xyz_entry.grid(row = 0, column = 1, padx = 4)
+        ''' ---------- CIE LAB ---------- '''
+        self.lab_lb = Label(self.output_labelframe, text = "CIE LAB", font = controller.label_big_font)
+        self.lab_lb.grid(row = 1, column = 0, padx = 4)
+        
+        self.lab_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.lab_entry.grid(row = 1, column = 1, padx = 4)
+        ''' ---------- CMYK ---------- '''
+        self.cmyk_lb = Label(self.output_labelframe, text = "CMYK", font = controller.label_big_font)
+        self.cmyk_lb.grid(row = 0, column = 2, padx = 4)
+        
+        self.cmyk_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.cmyk_entry.grid(row = 0, column = 3, padx = 4)
+        ''' ---------- HEX ---------- '''
+        self.hex_lb = Label(self.output_labelframe, text = "HEX", font = controller.label_big_font)
+        self.hex_lb.grid(row = 1, column = 2, padx = 4)
+        
+        self.hex_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.hex_entry.grid(row = 1, column = 3, padx = 4)
+        ''' ---------- RGB ---------- '''
+        self.rgb_lb = Label(self.output_labelframe, text = "RGB", font = controller.label_big_font)
+        self.rgb_lb.grid(row = 0, column = 4, padx = 4)
+        
+        self.rgb_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.rgb_entry.grid(row = 0, column = 5, padx = 4)
+
+        ''' ---------- Show Color ---------- '''
+        
+        
+        ''' ---------- Back Button ---------- '''
+        self.btn_back = tk.Button(self.labelframe, text="Back", font = controller.button_font,
+                                  command=lambda: controller.show_frame("StartPage"), width = 3, height = 1)
+        self.btn_back.grid(row = 2, column = 0, columnspan = 2 )
+
+
+    def calculate(self):
+        pass
+    
+    def __changeSetting(self, event):
+        mode = self.input_system_cb.get() 
+        system_select = {'XYZ': 4, 'CIE LAB': 0, 'CMYK': 2, 'HEX': 3, 'RGB':1}
+        print(system_select[mode])  # c
+        print(self.ill_in_cb.get())
+        
+        print(self.ill_out_cb.get())
+        print(self.input_degree.get())
+        print(self.output_degree.get())
+        print(self.range_check_bool.get())
         
 if __name__ == "__main__":
     app = APP_Test()
