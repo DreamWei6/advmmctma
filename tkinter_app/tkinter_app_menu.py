@@ -18,7 +18,8 @@ from colorimetry.examples_correction import sample_sd_data
 from colormath import color_conversions
 from colormath import color_objects
 from colormath.color_objects import *
-
+import col_conv
+from builtins import input
 
 
 class APP_Test(tk.Tk):
@@ -35,7 +36,7 @@ class APP_Test(tk.Tk):
         self.label_super_big_font = tkfont.Font(family = 'Courier', size = 24)
         
         self.title("ADVMMCTMA by Jimbo(M108660006)")
-        self.geometry("480x360")
+        self.geometry("480x400")
         self.resizable(False, False)
 
         
@@ -231,12 +232,12 @@ class Tristimulus(tk.Frame):
         self.btn_cal = tk.Button(self.labelframe, text = "Calculate", font = controller.button_font,
                                  command = lambda:self.__loadData(), 
                                  width = 8, height = 2)
-        self.btn_cal.grid(row = 4, column = 0, columnspan = 2, padx = 50, pady = 2)
+        self.btn_cal.grid(row = 4, column = 0, columnspan = 2, padx = 50, pady = 20)
         ''' ---------- Back Button ---------- '''
         self.btn_back = tk.Button(self.labelframe, text = "Back", font = controller.button_font,
                                   command=lambda: controller.show_frame("StartPage"),
                                   width = 6, height = 2)
-        self.btn_back.grid(row = 4, column = 2, columnspan = 2, padx = 50, pady = 2)
+        self.btn_back.grid(row = 4, column = 2, columnspan = 2, padx = 50, pady = 20)
         ''' ---------- Bottom Space ----------'''
         self.label = tk.Label(self.labelframe)
         self.label.grid(row = 5, column = 0, columnspan = 4, pady = 1)
@@ -494,9 +495,9 @@ class ColorSpaceCalculator(tk.Frame):
         self.ill_in_lb = Label(self.setting_labelframe, text = f'{"Illuminant for input values" : <30}',
                                     font = controller.label_font)
         self.ill_in_lb.grid(row = 1, column = 0, pady = 2)
-        self.ill_in_cb = Combobox(self.setting_labelframe, values = ["D50", "D65"],
+        self.ill_in_cb = Combobox(self.setting_labelframe, values = ["A","C","D50", "D55","D65", "D75"],
                                       font = controller.label_font, width = 8, state = 'readonly')
-        self.ill_in_cb.current(0)
+        self.ill_in_cb.current(2)
         self.ill_in_cb.bind('<<ComboboxSelected>>', self.__changeSetting)
         self.ill_in_cb.grid(row = 1, column = 1) 
         ''' ---------- Observer for input values ---------- '''
@@ -515,9 +516,9 @@ class ColorSpaceCalculator(tk.Frame):
         self.ill_out_lb = Label(self.setting_labelframe, text = f'{"Illuminant for output values" : <30}',
                                     font = controller.label_font)
         self.ill_out_lb.grid(row = 4, column = 0, pady = 2)
-        self.ill_out_cb = Combobox(self.setting_labelframe, values = ["D50", "D65"],
+        self.ill_out_cb = Combobox(self.setting_labelframe, values = ["A","C","D50", "D55","D65", "D75"],
                                       font = controller.label_font, width = 8, state = 'readonly')
-        self.ill_out_cb.current(0)
+        self.ill_out_cb.current(2)
         self.ill_out_cb.bind('<<ComboboxSelected>>', self.__changeSetting)
         self.ill_out_cb.grid(row = 4, column = 1) 
         ''' ---------- Observer for output values ---------- '''
@@ -541,32 +542,61 @@ class ColorSpaceCalculator(tk.Frame):
         self.range_check = tk.Checkbutton(self.setting_labelframe, var = self.range_check_bool, 
                                           command = lambda : self.__changeSetting('<<CheckbuttonSelected>>'))
         self.range_check.grid(row = 7, column = 1)
+        self.range_check_bool.set(True)
         
         ''' ==================== Input ==================== '''
         self.input_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
                                               font = controller.labelframe_font,
                                               text='Output')
         self.input_labelframe.grid(row = 0, column = 1, pady = 2, padx = 10)
+        ''' ---------- Input 0 ---------- '''
+        self.input0 = tk.StringVar()
+        self.input0.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
+        self.input0_lb = Label(self.input_labelframe, text = "X", font = controller.label_super_big_font)
+        self.input0_lb.grid(row = 0, column = 0, padx = 5)
+        self.input0_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
+                                  textvariable = self.input0)
+        self.input0_entry.insert(0, 0)
+        self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
         ''' ---------- Input 1 ---------- '''
-        self.input1_lb = Label(self.input_labelframe, text = "X", font = controller.label_super_big_font)
-        self.input1_lb.grid(row = 0, column = 0, padx = 5)
-        self.input1_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
-        self.input1_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+        self.input1 = tk.StringVar()
+        self.input1.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
+        self.input1_lb = Label(self.input_labelframe, text = "Y", font = controller.label_super_big_font)
+        self.input1_lb.grid(row = 1, column = 0, padx = 5)
+        self.input1_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
+                                  textvariable = self.input1)
+        self.input1_entry.insert(0, 0)
+        self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
         ''' ---------- Input 2 ---------- '''
-        self.input2_lb = Label(self.input_labelframe, text = "Y", font = controller.label_super_big_font)
-        self.input2_lb.grid(row = 1, column = 0, padx = 5)
-        self.input2_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
-        self.input2_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+        self.input2 = tk.StringVar()
+        self.input2.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
+        self.input2_lb = Label(self.input_labelframe, text = "Z", font = controller.label_super_big_font)
+        self.input2_lb.grid(row = 2, column = 0, padx = 5)
+        self.input2_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
+                                  textvariable = self.input2)
+        self.input2_entry.insert(0, 0)
+        self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
         ''' ---------- Input 3 ---------- '''
-        self.input3_lb = Label(self.input_labelframe, text = "Z", font = controller.label_super_big_font)
-        self.input3_lb.grid(row = 2, column = 0, padx = 5)
-        self.input3_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
-        self.input3_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+        self.input3 = tk.StringVar()
+        self.input3.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
+        self.input3_lb = Label(self.input_labelframe, text = " ", font = controller.label_super_big_font)
+        self.input3_lb.grid(row = 3, column = 0, padx = 5)
+        self.input3_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
+                                  textvariable = self.input3)
+        self.input3_entry.insert(0, 0)
+        self.input3_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
+        self.input3_entry.grid_forget()
         ''' ---------- Input 4 ---------- '''
-        self.input4_lb = Label(self.input_labelframe, text = " ", font = controller.label_super_big_font)
-        self.input4_lb.grid(row = 3, column = 0, padx = 5)
-        self.input4_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font)
+        self.input4 = tk.StringVar()
+        self.input4.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
+        self.input4_lb = Label(self.input_labelframe, text = "HEX", font = controller.label_super_big_font)
+        self.input4_lb.grid(row = 0, column = 0, padx = 5, columnspan = 2)
+        self.input4_lb.grid_forget()
+        self.input4_entry = Entry(self.input_labelframe, width = 8, font = controller.label_font,
+                                  textvariable = self.input4)
+        
         self.input4_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
+        self.input4_entry.grid_forget()
         
         ''' ==================== Output ==================== '''
         self.output_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
@@ -574,39 +604,41 @@ class ColorSpaceCalculator(tk.Frame):
                                               text='Input')
         self.output_labelframe.grid(row = 1, column = 0, pady = 5, padx = 10, columnspan = 2)
         ''' ---------- XYZ ---------- '''
-        self.xyz_lb = Label(self.output_labelframe, text = "XYZ", font = controller.label_big_font)
+        self.xyz_lb = Label(self.output_labelframe, text = "XYZ", font = controller.label_font)
         self.xyz_lb.grid(row = 0, column = 0, padx = 4)
         
-        self.xyz_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.xyz_entry = Entry(self.output_labelframe, width = 20, font = controller.label_font, state = 'readonly')
         self.xyz_entry.grid(row = 0, column = 1, padx = 4)
+        ''' ---------- RGB ---------- '''
+        self.rgb_lb = Label(self.output_labelframe, text = "RGB", font = controller.label_font)
+        self.rgb_lb.grid(row = 0, column = 2, padx = 4)
+        
+        self.rgb_entry = Entry(self.output_labelframe, width = 12, font = controller.label_font, state = 'readonly')
+        self.rgb_entry.grid(row = 0, column = 3, padx = 4)
         ''' ---------- CIE LAB ---------- '''
-        self.lab_lb = Label(self.output_labelframe, text = "CIE LAB", font = controller.label_big_font)
+        self.lab_lb = Label(self.output_labelframe, text = "CIE LAB", font = controller.label_font)
         self.lab_lb.grid(row = 1, column = 0, padx = 4)
         
-        self.lab_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.lab_entry = Entry(self.output_labelframe, width = 20, font = controller.label_font, state = 'readonly')
         self.lab_entry.grid(row = 1, column = 1, padx = 4)
-        ''' ---------- CMYK ---------- '''
-        self.cmyk_lb = Label(self.output_labelframe, text = "CMYK", font = controller.label_big_font)
-        self.cmyk_lb.grid(row = 0, column = 2, padx = 4)
-        
-        self.cmyk_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
-        self.cmyk_entry.grid(row = 0, column = 3, padx = 4)
         ''' ---------- HEX ---------- '''
-        self.hex_lb = Label(self.output_labelframe, text = "HEX", font = controller.label_big_font)
+        self.hex_lb = Label(self.output_labelframe, text = "HEX", font = controller.label_font)
         self.hex_lb.grid(row = 1, column = 2, padx = 4)
         
-        self.hex_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
+        self.hex_entry = Entry(self.output_labelframe, width = 12, font = controller.label_font, state = 'readonly')
         self.hex_entry.grid(row = 1, column = 3, padx = 4)
-        ''' ---------- RGB ---------- '''
-        self.rgb_lb = Label(self.output_labelframe, text = "RGB", font = controller.label_big_font)
-        self.rgb_lb.grid(row = 0, column = 4, padx = 4)
+        ''' ---------- CMYK ---------- '''
+        self.cmyk_lb = Label(self.output_labelframe, text = "CMYK", font = controller.label_font)
+        self.cmyk_lb.grid(row = 2, column = 0, padx = 4)
         
-        self.rgb_entry = Entry(self.output_labelframe, width = 6, font = controller.label_font, state = 'readonly')
-        self.rgb_entry.grid(row = 0, column = 5, padx = 4)
+        self.cmyk_entry = Entry(self.output_labelframe, width = 20, font = controller.label_font, state = 'readonly')
+        self.cmyk_entry.grid(row = 2, column = 1, padx = 4)
 
         ''' ---------- Show Color ---------- '''
+        self.show_color = tk.Label(self.output_labelframe, background = '#000000', width = 13, heigh = 1)
+        self.show_color.grid(row = 2, column = 2, columnspan = 2, ipadx = 2)
         
-        
+        self.__changeSetting('<<Onload>>')
         ''' ---------- Back Button ---------- '''
         self.btn_back = tk.Button(self.labelframe, text="Back", font = controller.button_font,
                                   command=lambda: controller.show_frame("StartPage"), width = 3, height = 1)
@@ -619,13 +651,255 @@ class ColorSpaceCalculator(tk.Frame):
     def __changeSetting(self, event):
         mode = self.input_system_cb.get() 
         system_select = {'XYZ': 4, 'CIE LAB': 0, 'CMYK': 2, 'HEX': 3, 'RGB':1}
-        print(system_select[mode])  # c
-        print(self.ill_in_cb.get())
+        mode = system_select[mode]
+        if self.ill_in_cb.get() == "A":
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 0
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 1
+        elif self.ill_in_cb.get() == "C":
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 2
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 3
+        elif self.ill_in_cb.get() == "D50": 
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 4
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 5
+        elif self.ill_in_cb.get() == "D55": 
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 6
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 7
+        elif self.ill_in_cb.get() == "D65":
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 8
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 9
+        elif self.ill_in_cb.get() == "D75":
+            if self.input_degree.get() == '2':
+                input_ill_n_obs = 10
+            elif self.input_degree.get() == '10':
+                input_ill_n_obs = 11
         
-        print(self.ill_out_cb.get())
-        print(self.input_degree.get())
-        print(self.output_degree.get())
-        print(self.range_check_bool.get())
+        if self.ill_out_cb.get() == "A":
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 0
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 1
+        elif self.ill_out_cb.get() == "C":
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 2
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 3
+        elif self.ill_out_cb.get() == "D50": 
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 4
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 5
+        elif self.ill_out_cb.get() == "D55": 
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 6
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 7
+        elif self.ill_out_cb.get() == "D65":
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 8
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 9
+        elif self.ill_out_cb.get() == "D75":
+            if self.output_degree.get() == '2':
+                output_ill_n_obs = 10
+            elif self.output_degree.get() == '10':
+                output_ill_n_obs = 11
+                
+        if mode == 0:
+            self.input0_lb['text'] = "L"
+            self.input1_lb['text'] = "a"
+            self.input2_lb['text'] = "b"
+            self.input3_lb['text'] = " "
+            self.input4_lb.grid_forget()
+            
+            self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+            self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+            self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+            self.input3_entry.grid_forget()
+            self.input4_entry.grid_forget()
+            
+            try:
+                input0 = self.input0.get()
+                if input0 == '':
+                    input0 = 0
+                else:
+                    input0 = int(input0)
+                input1 = self.input1.get()
+                if input1 == '':
+                    input1 = 0
+                else:
+                    input1 = int(input1)
+                input2 = self.input2.get()
+                if input2 == '':
+                    input2 = 0
+                else:
+                    input2 = int(input2)
+                input3 = 0
+            except:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry Integer！')
+        if mode == 1:
+            self.input0_lb['text'] = "R"
+            self.input1_lb['text'] = "G"
+            self.input2_lb['text'] = "B"
+            self.input3_lb['text'] = " "
+            self.input4_lb.grid_forget()
+            
+            self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+            self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+            self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+            self.input3_entry.grid_forget()
+            self.input4_entry.grid_forget()
+            
+            try:
+                input0 = self.input0.get()
+                if input0 == '':
+                    input0 = 0
+                else:
+                    input0 = int(input0)
+                input1 = self.input1.get()
+                if input1 == '':
+                    input1 = 0
+                else:
+                    input1 = int(input1)
+                input2 = self.input2.get()
+                if input2 == '':
+                    input2 = 0
+                else:
+                    input2 = int(input2)
+                input3 = 0
+            except:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry 0~255！')
+        if mode == 2:
+            self.input0_lb['text'] = "C"
+            self.input1_lb['text'] = "M"
+            self.input2_lb['text'] = "Y"
+            self.input3_lb['text'] = "K"
+            self.input4_lb.grid_forget()
+            
+            self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+            self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+            self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+            self.input3_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
+            self.input4_entry.grid_forget()
+            
+            try:
+                input0 = self.input0.get()
+                if input0 == '':
+                    input0 = 0
+                else:
+                    input0 = int(input0)
+                input1 = self.input1.get()
+                if input1 == '':
+                    input1 = 0
+                else:
+                    input1 = int(input1)
+                input2 = self.input2.get()
+                if input2 == '':
+                    input2 = 0
+                else:
+                    input2 = int(input2)
+                input3 = self.input3.get()
+                if input3 == '':
+                    input3 = 0
+                else:
+                    input3 = int(input3)
+            except:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry 0~100！')
+        if mode == 3:
+            self.input0_lb['text'] = ""
+            self.input1_lb['text'] = ""
+            self.input2_lb['text'] = ""
+            self.input3_lb['text'] = ""
+            self.input4_lb.grid(row = 0, column = 0, padx = 5, columnspan = 2)
+            self.input4_lb['text'] = "HEX"
+            
+            self.input0_entry.grid_forget()
+            self.input1_entry.grid_forget()
+            self.input2_entry.grid_forget()
+            self.input3_entry.grid_forget()
+            self.input4_entry.grid(row = 1, column = 0, pady = 9, padx = 5, columnspan = 2)
+            
+            
+            try:
+                input0 = self.input4.get()
+                input1 = 0
+                input2 = 0
+                input3 = 0
+            except:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry 000000~FFFFFF！')
+        if mode == 4:
+            self.input0_lb['text'] = "X"
+            self.input1_lb['text'] = "Y"
+            self.input2_lb['text'] = "Z"
+            self.input3_lb['text'] = " "
+            self.input4_lb.grid_forget()
+            
+            self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+            self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+            self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+            self.input3_entry.grid_forget()
+            self.input4_entry.grid_forget()
+            
+            try:
+                input0 = self.input0.get()
+                if input0 == '':
+                    input0 = 0
+                else:
+                    input0 = float(input0)
+                input1 = self.input1.get()
+                if input1 == '':
+                    input1 = 0
+                else:
+                    input1 = float(input1)
+                input2 = self.input2.get()
+                if input2 == '':
+                    input2 = 0
+                else:
+                    input2 = float(input2)
+                input3 = self.input3.get()
+                if input3 == '':
+                    input3 = 0
+                else:
+                    input3 = float(input3)
+            except:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry Correct Value！')
+        
+        temp = col_conv.convert(mode, input0, input1, input2, input3, 
+                                        self.range_check_bool.get(), input_ill_n_obs, output_ill_n_obs)
+        if temp != "Invalid input":
+            convert_data = temp
+            
+        print(convert_data)
+        self.rgb_entry['state'] = 'normal'
+        self.hex_entry['state'] = 'normal'
+        self.cmyk_entry['state'] = 'normal'
+        self.lab_entry['state'] = 'normal'
+        self.xyz_entry['state'] = 'normal'
+        self.rgb_entry.delete(0, END)
+        self.rgb_entry.insert(0, convert_data['RGB'])
+        self.hex_entry.delete(0, END)
+        self.hex_entry.insert(0, '#' + convert_data['HEX'])
+        self.cmyk_entry.delete(0, END)
+        self.cmyk_entry.insert(0, convert_data['CMYK'])
+        self.lab_entry.delete(0, END)
+        self.lab_entry.insert(0, convert_data['CIELAB'])
+        self.xyz_entry.delete(0, END)
+        self.xyz_entry.insert(0, convert_data['XYZ'])
+        self.rgb_entry['state'] = 'readonly'
+        self.hex_entry['state'] = 'readonly'
+        self.cmyk_entry['state'] = 'readonly'
+        self.lab_entry['state'] = 'readonly'
+        self.xyz_entry['state'] = 'readonly'
+        self.show_color['background'] = self.hex_entry.get()
         
 if __name__ == "__main__":
     app = APP_Test()
