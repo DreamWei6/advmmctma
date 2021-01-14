@@ -284,10 +284,12 @@ class Tristimulus(tk.Frame):
     def __askOpenFileName(self):
         self.filename = askopenfilename()
         
-        self.label_filename["text"] = self.filename.split('/')[-1]
+        
         file_type = self.filename.split('.')[-1]
         self.data = []
-        if self.filename != '':
+        if self.filename == '':
+            return messagebox.showwarning("File type wrong", "Please select file")
+        else:
             if file_type == 'txt':
                 print('txt')
                 try:
@@ -311,24 +313,28 @@ class Tristimulus(tk.Frame):
                         d.append(','.join(str(row[i]) for i in range(1, len(row))))
                         #print(d)
                         self.data.append(d)
+            else:
+                return messagebox.showwarning("File type wrong", "Please select .txt or .csv file")
         
-        self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
-        self.entry_spec_range["state"] = "normal"
-        self.entry_spec_range.delete(0, END)
-        self.entry_spec_range.insert(0, self.spec_range)
-        self.entry_spec_range["state"] = "readonly"
-        
-        self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
-        self.entry_interval["state"] = "normal"
-        self.entry_interval.delete(0, END)
-        self.entry_interval.insert(0, self.spec_interval)
-        self.entry_interval["state"] = "readonly"
-        
-        self.spec_number = len(self.data[0][1].split(','))
-        self.entry_number["state"] = "normal"
-        self.entry_number.delete(0, END)
-        self.entry_number.insert(0, self.spec_number)
-        self.entry_number["state"] = "readonly"
+            self.label_filename["text"] = self.filename.split('/')[-1]
+            
+            self.spec_range = self.data[0][0] + '~' + self.data[-1][0]
+            self.entry_spec_range["state"] = "normal"
+            self.entry_spec_range.delete(0, END)
+            self.entry_spec_range.insert(0, self.spec_range)
+            self.entry_spec_range["state"] = "readonly"
+            
+            self.spec_interval = int(self.data[1][0]) - int(self.data[0][0])
+            self.entry_interval["state"] = "normal"
+            self.entry_interval.delete(0, END)
+            self.entry_interval.insert(0, self.spec_interval)
+            self.entry_interval["state"] = "readonly"
+            
+            self.spec_number = len(self.data[0][1].split(','))
+            self.entry_number["state"] = "normal"
+            self.entry_number.delete(0, END)
+            self.entry_number.insert(0, self.spec_number)
+            self.entry_number["state"] = "readonly"
 
         
     def __createWindow(self, sample_sd_data_list):
@@ -468,6 +474,7 @@ class ColorSpaceCalculator(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        self.pre_mode = ''
         
         ''' ---------- Label Frame ---------- '''
         self.labelframe = tk.LabelFrame(self, labelanchor="nw",
@@ -551,53 +558,53 @@ class ColorSpaceCalculator(tk.Frame):
         self.input_labelframe.grid(row = 0, column = 1, pady = 2, padx = 10)
         ''' ---------- Input 0 ---------- '''
         self.input0 = tk.StringVar()
-        self.input0.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         self.input0_lb = Label(self.input_labelframe, text = "X", font = controller.label_super_big_font)
         self.input0_lb.grid(row = 0, column = 0, padx = 5)
+        
         self.input0_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
                                   textvariable = self.input0)
-        self.input0_entry.insert(0, 0)
         self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
+        self.input0.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         ''' ---------- Input 1 ---------- '''
         self.input1 = tk.StringVar()
-        self.input1.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         self.input1_lb = Label(self.input_labelframe, text = "Y", font = controller.label_super_big_font)
         self.input1_lb.grid(row = 1, column = 0, padx = 5)
+        
         self.input1_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
                                   textvariable = self.input1)
-        self.input1_entry.insert(0, 0)
         self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
+        self.input1.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         ''' ---------- Input 2 ---------- '''
         self.input2 = tk.StringVar()
-        self.input2.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         self.input2_lb = Label(self.input_labelframe, text = "Z", font = controller.label_super_big_font)
         self.input2_lb.grid(row = 2, column = 0, padx = 5)
+        
         self.input2_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
                                   textvariable = self.input2)
-        self.input2_entry.insert(0, 0)
         self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
+        self.input2.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         ''' ---------- Input 3 ---------- '''
         self.input3 = tk.StringVar()
-        self.input3.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         self.input3_lb = Label(self.input_labelframe, text = " ", font = controller.label_super_big_font)
         self.input3_lb.grid(row = 3, column = 0, padx = 5)
+        
         self.input3_entry = Entry(self.input_labelframe, width = 4, font = controller.label_font,
                                   textvariable = self.input3)
-        self.input3_entry.insert(0, 0)
         self.input3_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
         self.input3_entry.grid_forget()
+        self.input3.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         ''' ---------- Input 4 ---------- '''
         self.input4 = tk.StringVar()
-        self.input4.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         self.input4_lb = Label(self.input_labelframe, text = "HEX", font = controller.label_super_big_font)
         self.input4_lb.grid(row = 0, column = 0, padx = 5, columnspan = 2)
         self.input4_lb.grid_forget()
+        
         self.input4_entry = Entry(self.input_labelframe, width = 8, font = controller.label_font,
                                   textvariable = self.input4)
         
         self.input4_entry.grid(row = 3, column = 1, pady = 9, padx = 5)
         self.input4_entry.grid_forget()
-        
+        self.input4.trace("w", lambda name, index, mode: self.__changeSetting('<<Modifiy>>'))
         ''' ==================== Output ==================== '''
         self.output_labelframe = tk.LabelFrame(self.labelframe, labelanchor="n",
                                               font = controller.labelframe_font,
@@ -644,14 +651,26 @@ class ColorSpaceCalculator(tk.Frame):
                                   command=lambda: controller.show_frame("StartPage"), width = 3, height = 1)
         self.btn_back.grid(row = 2, column = 0, columnspan = 2 )
 
-
-    def calculate(self):
-        pass
     
     def __changeSetting(self, event):
         mode = self.input_system_cb.get() 
         system_select = {'XYZ': 4, 'CIE LAB': 0, 'CMYK': 2, 'HEX': 3, 'RGB':1}
         mode = system_select[mode]
+        illuminants = [
+            [1.0985, 1, 0.35585],
+            [1.11144, 1, 0.352],
+            [0.98074, 1, 1.18232],
+            [0.97285, 1, 1.16145],
+            [0.96422, 1, 0.82521],
+            [0.9672, 1, 0.81427],
+            [0.95682, 1, 0.92149],
+            [0.95799, 1, 0.90926],
+            [0.95047, 1, 1.08883],
+            [0.94811, 1, 1.07304],
+            [0.94972, 1, 1.22638],
+            [0.94416, 1, 1.20641]
+        ]
+        
         if self.ill_in_cb.get() == "A":
             if self.input_degree.get() == '2':
                 input_ill_n_obs = 0
@@ -713,14 +732,29 @@ class ColorSpaceCalculator(tk.Frame):
                 output_ill_n_obs = 10
             elif self.output_degree.get() == '10':
                 output_ill_n_obs = 11
-                
-        if mode == 0:
+    
+        if self.pre_mode != self.input_system_cb.get() :
+            self.input0_entry.delete(0, END)
+            self.input0_entry.delete(0, END)
+            self.input0_entry.insert(0, 0)
+            self.input1_entry.delete(0, END)
+            self.input1_entry.insert(0, 0)
+            self.input2_entry.delete(0, END)
+            self.input2_entry.insert(0, 0)
+            self.input3_entry.delete(0, END)
+            self.input3_entry.insert(0, 0)
+            self.input4_entry.delete(0, END)
+            self.input4_entry.insert(0, 0)
+            self.pre_mode = self.input_system_cb.get() 
+    
+        if mode == 0:   # Lab
+            
             self.input0_lb['text'] = "L"
             self.input1_lb['text'] = "a"
             self.input2_lb['text'] = "b"
             self.input3_lb['text'] = " "
             self.input4_lb.grid_forget()
-            
+                
             self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
             self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
             self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
@@ -728,31 +762,66 @@ class ColorSpaceCalculator(tk.Frame):
             self.input4_entry.grid_forget()
             
             try:
+                # L(0~100)
                 input0 = self.input0.get()
                 if input0 == '':
                     input0 = 0
+                elif float(input0) < 0:
+                    input0 = 0
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input0) > 100:
+                    input0 = 100
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 100！')
                 else:
-                    input0 = int(input0)
+                    input0 = float(input0)
+                
+                # a(-128~128)
                 input1 = self.input1.get()
                 if input1 == '':
                     input1 = 0
+                elif float(input1) < -128:
+                    input1 = -128
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > -128！')
+                elif float(input1) > 128:
+                    input1 = 128
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 128！')
                 else:
-                    input1 = int(input1)
+                    input1 = float(input1)
+                    
+                # b(-128~128)
                 input2 = self.input2.get()
                 if input2 == '':
                     input2 = 0
+                elif float(input2) < -128:
+                    input2 = -128
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > -128！')
+                elif float(input2) > 128:
+                    input2 = 128
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 128！')
                 else:
-                    input2 = int(input2)
+                    input2 = float(input2)
                 input3 = 0
             except:
-                messagebox.showwarning(title = 'Value Error', message = 'Please Entry Integer！')
-        if mode == 1:
+                messagebox.showwarning(title = 'Value Error', message = 'Please Entry L(0~100) a(-128~128) b(-128~128)！')
+        if mode == 1:   # RGB
             self.input0_lb['text'] = "R"
             self.input1_lb['text'] = "G"
             self.input2_lb['text'] = "B"
             self.input3_lb['text'] = " "
             self.input4_lb.grid_forget()
-            
+        
             self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
             self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
             self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
@@ -760,25 +829,61 @@ class ColorSpaceCalculator(tk.Frame):
             self.input4_entry.grid_forget()
             
             try:
+                # R(0~255)
                 input0 = self.input0.get()
                 if input0 == '':
                     input0 = 0
+                elif float(input0) < 0:
+                    input0 = 0
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input0) > 255:
+                    input0 = 255
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 255！')
                 else:
                     input0 = int(input0)
+                    
+                # G(0~255)
                 input1 = self.input1.get()
                 if input1 == '':
                     input1 = 0
+                elif float(input1) < 0:
+                    input1 = 0
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input1) > 255:
+                    input1 = 255
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 255！')
                 else:
                     input1 = int(input1)
+                    
+                # B(0~255)
                 input2 = self.input2.get()
                 if input2 == '':
                     input2 = 0
+                elif float(input2) < 0:
+                    input2 = 0
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input2) > 255:
+                    input2 = 255
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 255！')
                 else:
                     input2 = int(input2)
                 input3 = 0
             except:
                 messagebox.showwarning(title = 'Value Error', message = 'Please Entry 0~255！')
-        if mode == 2:
+        if mode == 2:   # CMYK
+            
             self.input0_lb['text'] = "C"
             self.input1_lb['text'] = "M"
             self.input2_lb['text'] = "Y"
@@ -792,29 +897,76 @@ class ColorSpaceCalculator(tk.Frame):
             self.input4_entry.grid_forget()
             
             try:
+                # C(0~100)
                 input0 = self.input0.get()
                 if input0 == '':
                     input0 = 0
+                elif float(input0) < 0:
+                    input0 = 0
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input0) > 100:
+                    input0 = 100
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 100！')
                 else:
                     input0 = int(input0)
+                    
+                # M(0~100)
                 input1 = self.input1.get()
                 if input1 == '':
                     input1 = 0
+                elif float(input1) < 0:
+                    input1 = 0
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input1) > 100:
+                    input1 = 100
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 100！')
                 else:
                     input1 = int(input1)
+                    
+                # Y(0~100)
                 input2 = self.input2.get()
                 if input2 == '':
                     input2 = 0
+                elif float(input2) < 0:
+                    input2 = 0
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input2) > 100:
+                    input2 = 100
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 100！')
                 else:
                     input2 = int(input2)
+                    
+                # K(0~100)
                 input3 = self.input3.get()
                 if input3 == '':
                     input3 = 0
+                elif float(input3) < 0:
+                    input3 = 0
+                    self.input3_entry.delete(0, END)
+                    self.input3_entry.insert(0, input3)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input3) > 100:
+                    input3 = 100
+                    self.input3_entry.delete(0, END)
+                    self.input3_entry.insert(0, input3)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry < 100！')
                 else:
                     input3 = int(input3)
             except:
                 messagebox.showwarning(title = 'Value Error', message = 'Please Entry 0~100！')
-        if mode == 3:
+        if mode == 3:   # HEX
             self.input0_lb['text'] = ""
             self.input1_lb['text'] = ""
             self.input2_lb['text'] = ""
@@ -828,21 +980,29 @@ class ColorSpaceCalculator(tk.Frame):
             self.input3_entry.grid_forget()
             self.input4_entry.grid(row = 1, column = 0, pady = 9, padx = 5, columnspan = 2)
             
-            
+            hex_range = [hex(i)[-1].upper() for i in range(16)]
             try:
                 input0 = self.input4.get()
+                if len(input0) > 6:
+                    input0 = input0[:6]
+                    self.input4_entry.delete(0, END)
+                    self.input4_entry.insert(0, input0)
+                for i in input0:
+                    if i not in hex_range:
+                        messagebox.showwarning(title = 'Value Error', message = 'Please Entry 000000~FFFFFF！')
+                    
                 input1 = 0
                 input2 = 0
                 input3 = 0
             except:
                 messagebox.showwarning(title = 'Value Error', message = 'Please Entry 000000~FFFFFF！')
-        if mode == 4:
+        if mode == 4:   # XYZ
             self.input0_lb['text'] = "X"
             self.input1_lb['text'] = "Y"
             self.input2_lb['text'] = "Z"
             self.input3_lb['text'] = " "
             self.input4_lb.grid_forget()
-            
+                
             self.input0_entry.grid(row = 0, column = 1, pady = 9, padx = 5)
             self.input1_entry.grid(row = 1, column = 1, pady = 9, padx = 5)
             self.input2_entry.grid(row = 2, column = 1, pady = 9, padx = 5)
@@ -850,26 +1010,74 @@ class ColorSpaceCalculator(tk.Frame):
             self.input4_entry.grid_forget()
             
             try:
+                # X
                 input0 = self.input0.get()
                 if input0 == '':
                     input0 = 0
+                elif float(input0) < 0:
+                    input0 = 0
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, input0)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input0) > illuminants[output_ill_n_obs][0] and self.range_check_bool.get() == True:
+                    input0 = illuminants[output_ill_n_obs][0]
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input0:.2f}！')
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, f'{input0:.2f}')
+                elif float(input0) > illuminants[output_ill_n_obs][0] * 100 and self.range_check_bool.get() == False:
+                    input0 = illuminants[output_ill_n_obs][0] * 100
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input0:.2f}！')
+                    self.input0_entry.delete(0, END)
+                    self.input0_entry.insert(0, f'{input0:.2f}')
                 else:
                     input0 = float(input0)
+                    
+                # Y
                 input1 = self.input1.get()
                 if input1 == '':
                     input1 = 0
+                elif float(input1) < 0:
+                    input1 = 0
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, input1)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input1) > illuminants[output_ill_n_obs][0] and self.range_check_bool.get() == True:
+                    input1 = illuminants[output_ill_n_obs][0]
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input1:.2f}！')
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, f'{input1:.2f}')
+                elif float(input1) > illuminants[output_ill_n_obs][0] * 100 and self.range_check_bool.get() == False:
+                    input1 = illuminants[output_ill_n_obs][0] * 100
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input1:.2f}！')
+                    self.input1_entry.delete(0, END)
+                    self.input1_entry.insert(0, f'{input1:.2f}')
                 else:
                     input1 = float(input1)
+                    
+                # Z
                 input2 = self.input2.get()
                 if input2 == '':
                     input2 = 0
+                elif float(input2) < 0:
+                    input2 = 0
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, input2)
+                    messagebox.showwarning(title = 'Value Error', message = 'Please Entry > 0！')
+                elif float(input2) > illuminants[output_ill_n_obs][0] and self.range_check_bool.get() == True:
+                    input2 = illuminants[output_ill_n_obs][0]
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input2:.2f}！')
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, f'{input2:.2f}')
+                elif float(input2) > illuminants[output_ill_n_obs][0] * 100 and self.range_check_bool.get() == False:
+                    input2 = illuminants[output_ill_n_obs][0] * 100
+                    messagebox.showwarning(title = 'Value Error', message = f'Please Entry < {input2:.2f}！')
+                    self.input2_entry.delete(0, END)
+                    self.input2_entry.insert(0, f'{input2:.2f}')
                 else:
                     input2 = float(input2)
-                input3 = self.input3.get()
-                if input3 == '':
-                    input3 = 0
-                else:
-                    input3 = float(input3)
+                    
+                input3 = 0
+            
             except:
                 messagebox.showwarning(title = 'Value Error', message = 'Please Entry Correct Value！')
         
@@ -878,28 +1086,28 @@ class ColorSpaceCalculator(tk.Frame):
         if temp != "Invalid input":
             convert_data = temp
             
-        print(convert_data)
-        self.rgb_entry['state'] = 'normal'
-        self.hex_entry['state'] = 'normal'
-        self.cmyk_entry['state'] = 'normal'
-        self.lab_entry['state'] = 'normal'
-        self.xyz_entry['state'] = 'normal'
-        self.rgb_entry.delete(0, END)
-        self.rgb_entry.insert(0, convert_data['RGB'])
-        self.hex_entry.delete(0, END)
-        self.hex_entry.insert(0, '#' + convert_data['HEX'])
-        self.cmyk_entry.delete(0, END)
-        self.cmyk_entry.insert(0, convert_data['CMYK'])
-        self.lab_entry.delete(0, END)
-        self.lab_entry.insert(0, convert_data['CIELAB'])
-        self.xyz_entry.delete(0, END)
-        self.xyz_entry.insert(0, convert_data['XYZ'])
-        self.rgb_entry['state'] = 'readonly'
-        self.hex_entry['state'] = 'readonly'
-        self.cmyk_entry['state'] = 'readonly'
-        self.lab_entry['state'] = 'readonly'
-        self.xyz_entry['state'] = 'readonly'
-        self.show_color['background'] = self.hex_entry.get()
+            print(convert_data)
+            self.rgb_entry['state'] = 'normal'
+            self.hex_entry['state'] = 'normal'
+            self.cmyk_entry['state'] = 'normal'
+            self.lab_entry['state'] = 'normal'
+            self.xyz_entry['state'] = 'normal'
+            self.rgb_entry.delete(0, END)
+            self.rgb_entry.insert(0, convert_data['RGB'])
+            self.hex_entry.delete(0, END)
+            self.hex_entry.insert(0, '#' + convert_data['HEX'])
+            self.cmyk_entry.delete(0, END)
+            self.cmyk_entry.insert(0, convert_data['CMYK'])
+            self.lab_entry.delete(0, END)
+            self.lab_entry.insert(0, convert_data['CIELAB'])
+            self.xyz_entry.delete(0, END)
+            self.xyz_entry.insert(0, convert_data['XYZ'])
+            self.rgb_entry['state'] = 'readonly'
+            self.hex_entry['state'] = 'readonly'
+            self.cmyk_entry['state'] = 'readonly'
+            self.lab_entry['state'] = 'readonly'
+            self.xyz_entry['state'] = 'readonly'
+            self.show_color['background'] = self.hex_entry.get()
         
 if __name__ == "__main__":
     app = APP_Test()

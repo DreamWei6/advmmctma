@@ -2,25 +2,7 @@ import math
 import profile
 
 useBpc = True
-limits = [
-    [
-        [0, 100],
-        [-128, 128],
-        [-128, 128]
-    ],
-    [
-        [0, 255],
-        [0, 255],
-        [0, 255]
-    ],
-    [
-        [0, 100],
-        [0, 100],
-        [0, 100],
-        [0, 100]
-    ]
-]
-last = [0, 0, 0, 0]
+
 smallXyzMode = True
 illuminants = [
     [1.0985, 1, 0.35585],
@@ -43,6 +25,7 @@ illuminantOut = 4
 
 
 def convert(mode, input0, input1, input2, input3, smallXyzMode, illuminantIn, illuminantOut):
+    
     a = illuminants[illuminantIn]
     b = illuminants[illuminantOut]
     #c = document.getElementById("mode").selectedIndex,
@@ -93,6 +76,8 @@ def convert(mode, input0, input1, input2, input3, smallXyzMode, illuminantIn, il
         i = xyzToLab(f, b)
     if c == 3:
         hex_code = str(e[0])
+        if  hex_code == '':
+            hex_code = '0'
         l = int(hex_code, 16)
         try:
             if len(hex_code) != 6:
